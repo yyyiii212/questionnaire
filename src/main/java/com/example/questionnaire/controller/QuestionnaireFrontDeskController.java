@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,7 +16,7 @@ import com.example.questionnaire.service.ifs.QuestionnaireFrontDeskService;
 import com.example.questionnaire.vo.QAndAReq;
 import com.example.questionnaire.vo.QuestionnaireFrontDeskReq;
 import com.example.questionnaire.vo.QuestionnaireFrontDeskRes;
-
+@CrossOrigin
 @RestController
 public class QuestionnaireFrontDeskController {
 
@@ -32,15 +33,13 @@ public class QuestionnaireFrontDeskController {
 		return null;
 	}
 	
-//	//檢查
-//	private QuestionnaireFrontDeskRes checkQuestionnaire(@RequestBody QuestionnaireFrontDeskReq req) {
-//		if (!StringUtils.hasText(req.getTitle())) {
-//			return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.TITLE.getMessage());
-//		} else if (!StringUtils.hasText(req.getDescription())) {
-//			return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.DESCRIPTION.getMessage());
-//		}
-//		return null;
-//	}
+	//檢查問題與答案有無填寫
+	@PostMapping(value = "/api/check_qAndA")
+	public QuestionnaireFrontDeskRes checkQAndA(@RequestBody QAndAReq req) {
+		
+		QuestionnaireFrontDeskRes check = questionnaireFrontDeskService.checkQAndA(req);
+		return check;
+	}
 	
 	//新增問卷
 	@PostMapping(value = "/api/create_questionnaire_title")

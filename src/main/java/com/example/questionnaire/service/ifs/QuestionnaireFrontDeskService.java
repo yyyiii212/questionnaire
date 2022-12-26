@@ -12,6 +12,8 @@ public interface QuestionnaireFrontDeskService {
 	
 	public QuestionnaireFrontDesk createQuestionnaireTitle(QuestionnaireFrontDeskReq req);
 	
+	public QuestionnaireFrontDeskRes checkQAndA(QAndAReq req);
+	
 	public QuestionnaireFrontDeskRes createQuestionnaireQAndA(QAndAReq req);
 	
 	public QuestionnaireFrontDesk updateQuestionnaireTitle(QuestionnaireFrontDeskReq req);

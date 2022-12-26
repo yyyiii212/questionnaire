@@ -1,6 +1,7 @@
 package com.example.questionnaire;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +14,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.example.questionnaire.entity.QAndA;
 import com.example.questionnaire.entity.QuestionnaireFrontDesk;
+import com.example.questionnaire.entity.Users;
 import com.example.questionnaire.respository.QAndADao;
+import com.example.questionnaire.respository.UsersDao;
 import com.example.questionnaire.service.ifs.QuestionnaireFrontDeskService;
 import com.example.questionnaire.vo.QAndAReq;
 import com.example.questionnaire.vo.QuestionnaireFrontDeskReq;
@@ -24,6 +27,8 @@ class QuestionnaireApplicationTests {
 	private QuestionnaireFrontDeskService questionnaireFrontDeskService;
 	@Autowired
 	private QAndADao qAndADao;
+	@Autowired
+	private UsersDao usersDao;
 
 	// 新增問卷
 	@Test
@@ -109,6 +114,47 @@ class QuestionnaireApplicationTests {
 					+ item.getStartTime() + " , " + item.getEndTime());
 		}
 
+	}
+	
+	@Test
+	public void contextLoads7() {
+		QAndAReq req = new QAndAReq();
+		QAndA qAndA = new QAndA();
+		qAndA.setQuestion("111");
+		qAndA.setAnswer("123");
+		QAndA qAndA1 = new QAndA();
+		qAndA1.setQuestion("222");
+		qAndA1.setAnswer("");
+		QAndA qAndA2 = new QAndA();
+		qAndA2.setQuestion("333");
+		qAndA2.setAnswer("111,222,333");
+		List<QAndA> list = new ArrayList<>();
+		list.add(qAndA);
+		list.add(qAndA1);
+		list.add(qAndA2);
+		Map<String, String> map = new HashMap<>();
+		
+		for (QAndA item : list) {
+			// answer字串切割
+			if(item.getAnswer().contains(",")) {
+				String cmower = item.getAnswer();
+				String[] parts = cmower.split(",");
+				StringBuffer sBuffer = new StringBuffer();
+				for (int i = 0; i < parts.length; i++) {
+					sBuffer.append(parts[i] + ";");
+				}
+				String str = sBuffer.substring(0, sBuffer.length() - 1).toString();
+				
+				map.put(item.getQuestion(), str);
+			}else {
+				map.put(item.getQuestion(), item.getAnswer());
+			}
+		}
+		Users users = new Users("hi", "0912345678", "213@gmail.com", 23, LocalDateTime.now());
+		users.setGender("男");
+		users.setTitle("99999");
+		users.setUsersAnswer(map.toString().substring(1, map.toString().length()-1));
+		usersDao.save(users);
 	}
 
 }

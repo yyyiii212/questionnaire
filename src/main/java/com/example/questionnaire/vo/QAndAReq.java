@@ -6,7 +6,6 @@ import java.util.UUID;
 import com.example.questionnaire.entity.QAndA;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class QAndAReq {
 	
 	private UUID uuid;

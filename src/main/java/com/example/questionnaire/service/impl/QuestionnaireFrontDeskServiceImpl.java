@@ -45,39 +45,50 @@ public class QuestionnaireFrontDeskServiceImpl implements QuestionnaireFrontDesk
 		return questionnaireFrontDesk;
 	}
 	
-	//判斷問題有無重複
-	private boolean checkQAndA(List<QAndA> list) {
+	//檢查問題與答案有無填寫
+	@Override
+	public QuestionnaireFrontDeskRes checkQAndA(QAndAReq req) {
+		if(req.getQuestion().isEmpty()) {
+			return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.QUESTION_IS_EMPTY.getMessage());
+		}else if (req.getAnswer().isEmpty()) {
+			return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.ANSWER_IS_EMPTY.getMessage());
+		}
+		return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.ERROR.getMessage());
+	}
+
+	// 判斷問題有無重複
+	private boolean checkQuestionRepeated(List<QAndA> list) {
 		List<String> strList = new ArrayList<>();
-		for(QAndA item : list) {
+		for (QAndA item : list) {
 			strList.add(item.getQuestion());
 		}
 		Set<String> set = new HashSet<>(strList);
 		return strList.size() == set.size();
 	}
 
-	//新增問題與答案(如果資料庫已有問卷的題目與答案就先刪掉 再新增
+	// 新增問題與答案(如果資料庫已有問卷的題目與答案就先刪掉 再新增
 	@Override
 	public QuestionnaireFrontDeskRes createQuestionnaireQAndA(QAndAReq req) {
-		//先找資料庫有無這張問卷
+		// 先找資料庫有無這張問卷
 		QuestionnaireFrontDesk questionnaireFrontDesk = frontDeskDao.findByTitle(req.getTitle());
-		if(questionnaireFrontDesk == null) {
+		if (questionnaireFrontDesk == null) {
 			return null;
 		}
-		
+
 		List<QAndA> qAndAListTitle = qAndADao.findAllByTitle(req.getTitle());
-		if(!qAndAListTitle.isEmpty()) {
+		if (!qAndAListTitle.isEmpty()) {
 			deleteQuestionnaireQAndA(req);
 		}
 
 		if (req.getqAndAList().isEmpty()) {
-			new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.SUCCESS.getMessage());
+			return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.SUCCESS.getMessage());
 		}
-		//判斷新增的問題有無重複(有重複就回傳null
+		// 判斷新增的問題有無重複(有重複就回傳null
 		List<QAndA> qAndAList = req.getqAndAList();
-		if(checkQAndA(qAndAList) == false) {
-			return null;
+		if (checkQuestionRepeated(qAndAList) == false) {
+			return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.QUESTION_REPEAT.getMessage());
 		}
-		
+
 		for (QAndA item : qAndAList) {
 			// answer字串切割
 			String cmower = item.getAnswer();
@@ -87,14 +98,11 @@ public class QuestionnaireFrontDeskServiceImpl implements QuestionnaireFrontDesk
 				sBuffer.append(parts[i] + ";");
 			}
 			String str = sBuffer.substring(0, sBuffer.length() - 1).toString();
-			
+
 			QAndA qAndA = new QAndA(UUID.randomUUID(), item.getTitle(), item.getQuestion(), str);
-			if (item.getOneOrMore() == true) {
-				qAndA.setOneOrMore(true);
-			}
-			if (item.getNecessary() == true) {
-				qAndA.setNecessary(true);
-			}
+			qAndA.setOneOrMore(item.getOneOrMore());
+			qAndA.setNecessary(item.getNecessary());
+
 			qAndADao.save(qAndA);
 		}
 		return new QuestionnaireFrontDeskRes(qAndAList);
@@ -171,7 +179,7 @@ public class QuestionnaireFrontDeskServiceImpl implements QuestionnaireFrontDesk
 			Optional<QuestionnaireFrontDesk> questionnaireFrontDeskOp = frontDeskDao.findById(req.getId());
 			QuestionnaireFrontDesk questionnaireFrontDesk = questionnaireFrontDeskOp.get();
 			frontDeskDao.delete(questionnaireFrontDesk);
-			//刪除問卷的題目
+			// 刪除問卷的題目
 			List<QAndA> qAndAList = qAndADao.findAllByTitle(questionnaireFrontDesk.getTitle());
 			qAndADao.deleteAll(qAndAList);
 			return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.SUCCESS.getMessage());
@@ -181,30 +189,31 @@ public class QuestionnaireFrontDeskServiceImpl implements QuestionnaireFrontDesk
 
 	// 刪除問卷問題
 	private QuestionnaireFrontDeskRes deleteQuestionnaireQAndA(QAndAReq req) {
-		
+
 		List<QAndA> qAndAList = qAndADao.findAllByTitle(req.getTitle());
 		qAndADao.deleteAll(qAndAList);
 		return new QuestionnaireFrontDeskRes(QuestionnaireFrontDeskRtnCode.SUCCESS.getMessage());
 	}
-	
-	//列出所有問卷
+
+	// 列出所有問卷
 	@Override
 	public List<QuestionnaireFrontDesk> searchAll(QuestionnaireFrontDeskReq req) {
-		
+
 //		List<QuestionnaireFrontDesk> questionnaireFrontDeskList = frontDeskDao.findAll();
 		return frontDeskDao.findAll();
 	}
-	
+
 	@Override
 	public List<QuestionnaireFrontDesk> searchQuestionnaireTitle(QuestionnaireFrontDeskReq req) {
-		//列出所有問卷
+		// 列出所有問卷
 		List<QuestionnaireFrontDesk> frontDeskList = frontDeskDao.findAll();
-		
+
 		List<QuestionnaireFrontDesk> findFrontDeskList = new ArrayList<>();
-		//找出有包含輸入字串的標題
-		for(QuestionnaireFrontDesk item : frontDeskList) {
-			if(item.getTitle().contains(req.getTitle())) {
-				QuestionnaireFrontDesk questionnaireFrontDesk = new QuestionnaireFrontDesk(item.getTitle(), item.getDescription(), item.getStartTime(), item.getEndTime());
+		// 找出有包含輸入字串的標題
+		for (QuestionnaireFrontDesk item : frontDeskList) {
+			if (item.getTitle().contains(req.getTitle())) {
+				QuestionnaireFrontDesk questionnaireFrontDesk = new QuestionnaireFrontDesk(item.getTitle(),
+						item.getDescription(), item.getStartTime(), item.getEndTime());
 				findFrontDeskList.add(questionnaireFrontDesk);
 			}
 		}

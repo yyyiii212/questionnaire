@@ -5,6 +5,9 @@ public enum QuestionnaireFrontDeskRtnCode {
 	ID_IS_NOT_FOUND("400", "Id is not found !!"),
 	TITLE("400", "Title cannot be empty or null !!"),
 	DESCRIPTION("400", "Description cannot be empty or null !!"),
+	QUESTION_REPEAT("400", "Question repeated !!"),
+	QUESTION_IS_EMPTY("400", "Question is empty !!"),
+	ANSWER_IS_EMPTY("400", "Answer is empty !!"),
 	ERROR("400","Not found !!");
 	
 	private String code;
